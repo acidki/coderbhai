@@ -66,7 +66,8 @@ import {
   Share2,
   Key,
   UserCheck,
-  Lock
+  Lock,
+  BookOpen
 } from 'lucide-react';
 
 interface Props {
@@ -119,6 +120,7 @@ export const CodingArenaModal: React.FC<Props> = ({
   const [code, setCode] = useState<string>('');
   const [customStdin, setCustomStdin] = useState<string>('');
   const [activeConsoleTab, setActiveConsoleTab] = useState<'output' | 'tests' | 'custom_input'>('output');
+  const [mobileBattleTab, setMobileBattleTab] = useState<'problem' | 'code' | 'tests'>('problem');
 
   // Execution & Test State
   const [isRunning, setIsRunning] = useState(false);
@@ -551,6 +553,7 @@ export const CodingArenaModal: React.FC<Props> = ({
     setIsRunning(true);
     setRunResult(null);
     setActiveConsoleTab('output');
+    setMobileBattleTab('tests');
 
     try {
       const sampleInput = customStdin || currentProblem.sampleCases[0]?.input || '';
@@ -573,6 +576,7 @@ export const CodingArenaModal: React.FC<Props> = ({
     setIsTesting(true);
     setEvaluationResult(null);
     setActiveConsoleTab('tests');
+    setMobileBattleTab('tests');
 
     try {
       const summary = await evaluateTestCases(code, selectedLanguage, currentProblem.sampleCases);
@@ -593,6 +597,7 @@ export const CodingArenaModal: React.FC<Props> = ({
     sound.playClick();
     setIsSubmitting(true);
     setActiveConsoleTab('tests');
+    setMobileBattleTab('tests');
 
     try {
       const allCases = [...currentProblem.sampleCases, ...currentProblem.hiddenCases];
@@ -682,8 +687,8 @@ export const CodingArenaModal: React.FC<Props> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-7xl h-[95vh] flex flex-col rounded-2xl bg-white dark:bg-[#090D16] border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden text-left">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+      <div className="relative w-full max-w-7xl h-[100dvh] sm:h-[95vh] max-h-[100dvh] sm:max-h-[95vh] flex flex-col rounded-none sm:rounded-2xl bg-white dark:bg-[#090D16] border-0 sm:border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden text-left pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:pt-0 sm:pb-0">
 
         {/* ----------------- SCREEN 1: LOBBY & ROOM CONFIG ----------------- */}
         {screen === 'lobby' && (
@@ -1266,12 +1271,13 @@ export const CodingArenaModal: React.FC<Props> = ({
         {screen === 'battle' && currentProblem && currentMatch && (
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Top Battle HUD Bar */}
-            <div className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B0F19] flex items-center justify-between gap-3 shrink-0">
+            <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B0F19] flex items-center justify-between gap-2 sm:gap-3 shrink-0">
               {/* Left: Mode Badge & Problem Navigator */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 text-xs font-black">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 text-xs font-black shrink-0">
                   {currentMatch.mode === 'stopwatch' ? <Timer className="w-4 h-4" /> : <Swords className="w-4 h-4" />}
-                  <span className="uppercase">{currentMatch.mode} Battle</span>
+                  <span className="uppercase hidden sm:inline">{currentMatch.mode} Battle</span>
+                  <span className="uppercase sm:hidden">{currentMatch.mode}</span>
                 </div>
 
                 {/* Problem selector tabs for Takedown */}
@@ -1288,7 +1294,7 @@ export const CodingArenaModal: React.FC<Props> = ({
                             sound.playClick();
                             setCurrentProblemIndex(idx);
                           }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
+                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
                             isCurrent
                               ? 'bg-brand-primary text-white shadow-sm'
                               : isSolved
@@ -1306,15 +1312,15 @@ export const CodingArenaModal: React.FC<Props> = ({
               </div>
 
               {/* Middle: Countdown Timer */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <div
-                  className={`flex items-center gap-1.5 px-3.5 py-1 rounded-2xl font-mono text-sm font-black tracking-wider ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 rounded-2xl font-mono text-xs sm:text-sm font-black tracking-wider ${
                     timeLeftSeconds <= 30
                       ? 'bg-rose-500 text-white animate-pulse'
                       : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
                   }`}
                 >
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                   <span>
                     {Math.floor(timeLeftSeconds / 60)}:
                     {(timeLeftSeconds % 60).toString().padStart(2, '0')}
@@ -1323,12 +1329,12 @@ export const CodingArenaModal: React.FC<Props> = ({
               </div>
 
               {/* Right: Scores & Opponent Progress */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-xs font-black">
-                  <span className="text-emerald-500">You: {currentMatch.host.score} pts</span>
+              <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-black">
+                  <span className="text-emerald-500">You: {currentMatch.host.score}</span>
                   <span className="text-slate-300 dark:text-slate-700">|</span>
                   <span className="text-rose-400">
-                    {currentMatch.opponent?.name}: {currentMatch.opponent?.score} pts
+                    {currentMatch.opponent?.name}: {currentMatch.opponent?.score}
                   </span>
                 </div>
 
@@ -1338,12 +1344,71 @@ export const CodingArenaModal: React.FC<Props> = ({
                     sound.playClick();
                     handleFinishMatch('tie');
                   }}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 cursor-pointer"
+                  className="p-1 sm:p-1.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 cursor-pointer"
                   title="Resign / Forfeit match"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
+            </div>
+
+            {/* Mobile Battle Segmented Switcher (< md only) */}
+            <div className="flex md:hidden items-center border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 px-2 py-1 gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setMobileBattleTab('problem');
+                }}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  mobileBattleTab === 'problem'
+                    ? 'bg-white dark:bg-slate-800 text-purple-500 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Problem</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setMobileBattleTab('code');
+                }}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  mobileBattleTab === 'code'
+                    ? 'bg-white dark:bg-slate-800 text-purple-500 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                <Code2 className="w-3.5 h-3.5" />
+                <span>Code</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setMobileBattleTab('tests');
+                  setActiveConsoleTab('tests');
+                }}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer relative ${
+                  mobileBattleTab === 'tests'
+                    ? 'bg-white dark:bg-slate-800 text-purple-500 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                <Terminal className="w-3.5 h-3.5" />
+                <span>Tests</span>
+                {evaluationResult && (
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      evaluationResult.allPassed ? 'bg-emerald-400' : 'bg-rose-400'
+                    }`}
+                  />
+                )}
+              </button>
             </div>
 
             {/* Battle Live Notification Banner */}
@@ -1363,7 +1428,9 @@ export const CodingArenaModal: React.FC<Props> = ({
             {/* Main Battle Arena Workspace (Split Screen: Question Top, Live Coding Bottom) */}
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
               {/* LEFT / TOP PANEL: QUESTION DETAILS (NOT GAMIFIED) */}
-              <div className="w-full md:w-5/12 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden bg-slate-50/60 dark:bg-slate-900/30">
+              <div className={`w-full md:w-5/12 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex-col overflow-hidden bg-slate-50/60 dark:bg-slate-900/30 ${
+                mobileBattleTab === 'problem' ? 'flex flex-1 min-h-0' : 'hidden md:flex'
+              }`}>
                 {/* Problem Header */}
                 <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
                   <div>
@@ -1446,11 +1513,28 @@ export const CodingArenaModal: React.FC<Props> = ({
                       </div>
                     ))}
                   </div>
+
+                  {/* Mobile Jump to Code */}
+                  <div className="md:hidden pt-4 pb-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playClick();
+                        setMobileBattleTab('code');
+                      }}
+                      className="btn-3d btn-3d-primary w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Code2 className="w-4 h-4" />
+                      <span>Open Code Editor</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* RIGHT / BOTTOM PANEL: LIVE CODING ENVIRONMENT */}
-              <div className="w-full md:w-7/12 flex flex-col overflow-hidden bg-[#0D1117] text-slate-100">
+              <div className={`w-full md:w-7/12 flex-col overflow-hidden bg-[#0D1117] text-slate-100 ${
+                mobileBattleTab === 'problem' ? 'hidden md:flex' : 'flex flex-1 min-h-0'
+              }`}>
                 {/* Editor Top Bar: Language Selector & Controls */}
                 <div className="px-4 py-2 border-b border-slate-800 bg-[#161B22] flex items-center justify-between gap-2 shrink-0">
                   <div className="flex items-center gap-2">
@@ -1491,7 +1575,9 @@ export const CodingArenaModal: React.FC<Props> = ({
                 </div>
 
                 {/* Live Code Area with Syntax Highlighting */}
-                <div className="relative flex-1 min-h-[160px] overflow-hidden bg-[#0D1117]">
+                <div className={`relative min-h-[160px] overflow-hidden bg-[#0D1117] ${
+                  mobileBattleTab === 'tests' ? 'hidden md:flex md:flex-1' : 'flex-1'
+                }`}>
                   <textarea
                     ref={textareaRef}
                     value={code}
@@ -1502,7 +1588,8 @@ export const CodingArenaModal: React.FC<Props> = ({
                     autoCapitalize="off"
                     autoComplete="off"
                     autoCorrect="off"
-                    className="absolute inset-0 w-full h-full p-4 font-mono text-xs sm:text-sm bg-transparent text-slate-100 caret-brand-primary resize-none outline-none z-10 leading-relaxed"
+                    wrap="off"
+                    className="absolute inset-0 w-full h-full p-4 font-mono text-xs sm:text-sm bg-transparent text-slate-100 caret-brand-primary resize-none outline-none z-10 leading-relaxed overscroll-contain"
                   />
                   <pre
                     ref={preRef}
@@ -1528,7 +1615,9 @@ export const CodingArenaModal: React.FC<Props> = ({
                 </div>
 
                 {/* Console / Test Results Drawer */}
-                <div className="h-44 sm:h-48 border-t border-slate-800 bg-[#161B22] flex flex-col shrink-0">
+                <div className={`border-t border-slate-800 bg-[#161B22] flex flex-col ${
+                  mobileBattleTab === 'tests' ? 'flex-1 min-h-0' : 'h-44 sm:h-48 shrink-0'
+                }`}>
                   {/* Console Tabs */}
                   <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-800 text-xs">
                     <div className="flex items-center gap-2">

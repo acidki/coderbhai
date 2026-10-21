@@ -5,6 +5,14 @@ import { INITIAL_QUESTION_BANK } from '../data/questionBank';
 const STORAGE_KEY_COMMUNITY_QUESTIONS = 'bytesized_community_questions';
 const STORAGE_KEY_ARENA_MATCHES = 'bytesized_arena_history';
 
+async function withTimeout<T>(promise: PromiseLike<T>, ms = 1200): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Network timeout')), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+}
+
 /**
  * Loads all approved challenges from built-in repository and approved community contributions.
  */
@@ -14,10 +22,12 @@ export async function getApprovedChallenges(): Promise<ArenaChallenge[]> {
   // Try fetching from Supabase if table exists
   let remoteApproved: ArenaChallenge[] = [];
   try {
-    const { data, error } = await supabase
-      .from('question_bank')
-      .select('*')
-      .eq('status', 'approved');
+    const { data, error } = await withTimeout(
+      supabase
+        .from('question_bank')
+        .select('*')
+        .eq('status', 'approved')
+    );
 
     if (!error && data && data.length > 0) {
       remoteApproved = data.map(mapDbToChallenge);
@@ -45,10 +55,12 @@ export async function getPendingChallenges(): Promise<ArenaChallenge[]> {
 
   let remotePending: ArenaChallenge[] = [];
   try {
-    const { data, error } = await supabase
-      .from('question_bank')
-      .select('*')
-      .eq('status', 'pending');
+    const { data, error } = await withTimeout(
+      supabase
+        .from('question_bank')
+        .select('*')
+        .eq('status', 'pending')
+    );
 
     if (!error && data && data.length > 0) {
       remotePending = data.map(mapDbToChallenge);

@@ -100,9 +100,9 @@ export const DsaRoadmapModal: React.FC<Props> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="dsa-roadmap-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-hidden animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-hidden animate-fadeIn"
     >
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white dark:bg-[#0E131F] border-2 border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-4xl h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[92vh] flex flex-col bg-white dark:bg-[#0E131F] border-0 sm:border-2 border-slate-200 dark:border-slate-800 rounded-none sm:rounded-3xl shadow-2xl overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:pt-0 sm:pb-0">
         {/* Modal Top Header */}
         <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 backdrop-blur-sm flex flex-col gap-4">
           <div className="flex items-center justify-between">

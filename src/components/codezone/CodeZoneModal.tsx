@@ -22,7 +22,11 @@ import {
   Send,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  Code2
 } from 'lucide-react';
 import { DsaProblemSpec } from '../../types/dsa';
 import { evaluateTestCases, EvaluationSummary } from '../../utils/codeRunner';
@@ -265,10 +269,96 @@ export const CodeZoneModal: React.FC<Props> = ({
   const [activeBottomTab, setActiveBottomTab] = useState<'tests' | 'terminal'>(
     problem ? 'tests' : 'terminal'
   );
+  const [mobileTab, setMobileTab] = useState<'problem' | 'code' | 'tests'>(
+    problem ? 'problem' : 'code'
+  );
   const [isProblemPanelCollapsed, setIsProblemPanelCollapsed] = useState<boolean>(false);
   const [executionStats, setExecutionStats] = useState<{ timeMs: number; status: 'ok' | 'error' } | null>(null);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [mascotWisdom, setMascotWisdom] = useState<string | null>(null);
+
+  // Attempt-first solution disclosure & hints state
+  const [revealedHintsCount, setRevealedHintsCount] = useState<number>(0);
+  const [isSolutionRevealed, setIsSolutionRevealed] = useState<boolean>(false);
+  const [showSolutionConfirm, setShowSolutionConfirm] = useState<boolean>(false);
+  const [solutionLanguage, setSolutionLanguage] = useState<CodeLanguage>(language || 'python');
+  const [copiedSolution, setCopiedSolution] = useState<boolean>(false);
+
+  // Synchronize initial mobile tab and reset solution/hints when problem changes to prevent leakage
+  const prevProblemIdRef = useRef<string | undefined>(problem?.id);
+  useEffect(() => {
+    setRevealedHintsCount(0);
+    setIsSolutionRevealed(false);
+    setShowSolutionConfirm(false);
+    setCopiedSolution(false);
+
+    if (problem) {
+      setMobileTab('problem');
+      if (problem.solutions) {
+        const langs = Object.keys(problem.solutions) as CodeLanguage[];
+        if (langs.length > 0) {
+          setSolutionLanguage(langs.includes(language) ? language : langs[0]);
+        }
+      }
+
+      if (problem.id !== prevProblemIdRef.current) {
+        prevProblemIdRef.current = problem.id;
+        let targetLang = language;
+        try {
+          const savedLang = localStorage.getItem(`bytesized_dsa_last_lang_${problem.id}`);
+          if (savedLang === 'c' || savedLang === 'cpp' || savedLang === 'python' || savedLang === 'javascript') {
+            targetLang = savedLang as CodeLanguage;
+            setLanguage(targetLang);
+          }
+        } catch {
+          // ignore
+        }
+        try {
+          const draftKey = `bytesized_dsa_draft_${problem.id}_${targetLang}`;
+          const savedDraft = localStorage.getItem(draftKey);
+          setCode(savedDraft || problem.starterTemplates[targetLang] || '');
+        } catch {
+          setCode(problem.starterTemplates[targetLang] || '');
+        }
+        setEvaluationSummary(null);
+        setExecutionStats(null);
+      }
+    } else {
+      setMobileTab('code');
+    }
+  }, [problem?.id]);
+
+  const problemSolutions = problem?.solutions;
+  const availableSolutionLangs = useMemo(() => {
+    if (!problemSolutions) return [];
+    return Object.keys(problemSolutions) as CodeLanguage[];
+  }, [problemSolutions]);
+
+  const currentSolutionCode = useMemo(() => {
+    if (!problemSolutions) return '';
+    return (
+      problemSolutions[solutionLanguage] ||
+      problemSolutions[language] ||
+      Object.values(problemSolutions)[0] ||
+      ''
+    );
+  }, [problemSolutions, solutionLanguage, language]);
+
+  const handleCopySolution = () => {
+    if (!currentSolutionCode) return;
+    navigator.clipboard.writeText(currentSolutionCode);
+    setCopiedSolution(true);
+    sound.playClick();
+    setTimeout(() => setCopiedSolution(false), 2000);
+  };
+
+  const handleLoadSolutionIntoEditor = () => {
+    if (!currentSolutionCode) return;
+    handleLanguageChange(solutionLanguage);
+    setCode(currentSolutionCode);
+    sound.playSuccess();
+    setMobileTab('code');
+  };
 
   // Clean up any confetti when CodeZone closes
   useEffect(() => {
@@ -572,6 +662,7 @@ export const CodeZoneModal: React.FC<Props> = ({
     setExecutionStats(null);
     setMascotWisdom(null);
     setActiveBottomTab('terminal');
+    setMobileTab('tests');
 
     const startTime = performance.now();
 
@@ -789,6 +880,7 @@ export const CodeZoneModal: React.FC<Props> = ({
     sound.playClick();
     setIsEvaluating(true);
     setActiveBottomTab('tests');
+    setMobileTab('tests');
     if (onProblemAttempted) {
       onProblemAttempted(problem.id);
     }
@@ -811,6 +903,7 @@ export const CodeZoneModal: React.FC<Props> = ({
     sound.playClick();
     setIsEvaluating(true);
     setActiveBottomTab('tests');
+    setMobileTab('tests');
 
     const allCases = [...problem.sampleCases, ...problem.hiddenCases];
     const summary = await evaluateTestCases(code, language, allCases);
@@ -848,14 +941,14 @@ export const CodeZoneModal: React.FC<Props> = ({
         className={`w-full ${
           isStandalone
             ? 'h-full max-w-none max-h-none rounded-none border-0'
-            : 'max-w-7xl h-full sm:h-[95vh] sm:max-h-[920px] rounded-none sm:rounded-3xl border-0 sm:border-2 border-slate-700/80 shadow-2xl'
-        } bg-[#0B0F19] flex flex-col overflow-hidden text-slate-100`}
+            : 'max-w-7xl h-[100dvh] sm:h-[95vh] sm:max-h-[920px] rounded-none sm:rounded-3xl border-0 sm:border-2 border-slate-700/80 shadow-2xl'
+        } bg-[#0B0F19] flex flex-col overflow-hidden text-slate-100 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:pt-0 sm:pb-0`}
       >
         {/* Top Control Bar */}
-        <div className="px-3 sm:px-6 py-2 sm:py-3 border-b border-slate-800 bg-[#101726] flex items-center justify-between gap-2 sm:gap-3 shrink-0">
+        <div className="px-2.5 sm:px-6 py-2 sm:py-3 border-b border-slate-800 bg-[#101726] flex items-center justify-between gap-1.5 sm:gap-3 shrink-0">
           {problem ? (
             /* Left: Back to Roadmap + Problem Info */
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
               <button
                 type="button"
                 onClick={() => {
@@ -863,43 +956,41 @@ export const CodeZoneModal: React.FC<Props> = ({
                   if (onBackToRoadmap) onBackToRoadmap();
                   else onClose();
                 }}
-                className="btn-3d flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 transition-all cursor-pointer shrink-0"
+                className="btn-3d flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-xl text-xs font-black bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 transition-all cursor-pointer shrink-0"
                 title="Return to DSA Roadmap"
+                aria-label="Return to DSA Roadmap"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
                 <span className="hidden sm:inline">Back to Roadmap</span>
-                <span className="sm:hidden">Roadmap</span>
               </button>
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 sm:gap-2 truncate">
-                  <h2 className="text-sm sm:text-base font-black text-white truncate">
-                    {problem.title}
-                  </h2>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 border ${
-                      problem.difficulty === 'Easy'
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                        : problem.difficulty === 'Medium'
-                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                        : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                    }`}
-                  >
-                    {problem.difficulty}
+              <div className="min-w-0 flex items-center gap-1.5 sm:gap-2">
+                <h2 className="text-xs sm:text-base font-black text-white truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">
+                  {problem.title}
+                </h2>
+                <span
+                  className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider shrink-0 border ${
+                    problem.difficulty === 'Easy'
+                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      : problem.difficulty === 'Medium'
+                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                      : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                  }`}
+                >
+                  {problem.difficulty}
+                </span>
+                <span className="hidden md:inline-block text-[11px] font-semibold text-slate-400 truncate">
+                  • {problem.category}
+                </span>
+                {currentStatus === 'solved' ? (
+                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+                    <Check className="w-3 h-3" /> Solved
                   </span>
-                  <span className="hidden md:inline-block text-[11px] font-semibold text-slate-400 truncate">
-                    • {problem.category}
+                ) : currentStatus === 'attempted' ? (
+                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                    <Clock className="w-3 h-3" /> Attempted
                   </span>
-                  {currentStatus === 'solved' ? (
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
-                      <Check className="w-3 h-3" /> Solved
-                    </span>
-                  ) : currentStatus === 'attempted' ? (
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
-                      <Clock className="w-3 h-3" /> Attempted
-                    </span>
-                  ) : null}
-                </div>
+                ) : null}
               </div>
             </div>
           ) : (
@@ -931,7 +1022,7 @@ export const CodeZoneModal: React.FC<Props> = ({
           )}
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {problem ? (
               <>
                 {/* Run Sample Tests */}
@@ -939,7 +1030,7 @@ export const CodeZoneModal: React.FC<Props> = ({
                   type="button"
                   disabled={isEvaluating}
                   onClick={handleRunSampleTests}
-                  className="btn-3d btn-3d-green px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-white shadow-lg cursor-pointer shrink-0"
+                  className="btn-3d btn-3d-green px-2 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 text-white shadow-lg cursor-pointer shrink-0"
                   title="Run code against visible sample test cases (Ctrl + Enter)"
                 >
                   <Play className={`w-3.5 h-3.5 fill-current ${isEvaluating ? 'animate-spin' : ''}`} />
@@ -952,7 +1043,7 @@ export const CodeZoneModal: React.FC<Props> = ({
                   type="button"
                   disabled={isEvaluating}
                   onClick={handleSubmitCode}
-                  className="btn-3d px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border border-purple-400/40 shadow-lg shadow-purple-900/30 cursor-pointer shrink-0"
+                  className="btn-3d px-2.5 sm:px-5 py-1.5 sm:py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border border-purple-400/40 shadow-lg shadow-purple-900/30 cursor-pointer shrink-0"
                   title="Submit solution against complete test suite (including hidden tests)"
                 >
                   <Send className={`w-3.5 h-3.5 ${isEvaluating ? 'animate-pulse' : ''}`} />
@@ -963,7 +1054,7 @@ export const CodeZoneModal: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => handleResetTemplate()}
-                  className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+                  className="hidden sm:flex p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
                   title="Reset code to default starter template"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -988,7 +1079,7 @@ export const CodeZoneModal: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={handleLaunchInNewTab}
-                    className="btn-3d flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-black bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/30 transition-all cursor-pointer shrink-0"
+                    className="btn-3d hidden sm:flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-black bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/30 transition-all cursor-pointer shrink-0"
                     title="Launch in dedicated browser tab"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -1017,7 +1108,7 @@ export const CodeZoneModal: React.FC<Props> = ({
             <button
               type="button"
               onClick={handleCopyCode}
-              className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+              className="hidden sm:flex p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
               title="Copy code"
             >
               {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -1041,23 +1132,23 @@ export const CodeZoneModal: React.FC<Props> = ({
                   <span className="hidden sm:inline">Back</span>
                 </>
               ) : (
-                <X className="w-5 h-5 stroke-[2.5]" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
               )}
             </button>
           </div>
         </div>
 
         {/* Sub-bar: Language Picker & Options */}
-        <div className="px-3 sm:px-6 py-2 border-b border-slate-800 bg-[#0E1524] flex items-center justify-between gap-2.5 shrink-0 text-xs font-semibold overflow-x-auto scrollbar-none">
+        <div className="px-2.5 sm:px-6 py-1.5 sm:py-2 border-b border-slate-800 bg-[#0E1524] flex items-center justify-between gap-2 shrink-0 text-xs font-semibold overflow-x-auto scrollbar-none">
           {/* Language Tabs */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {(
               [
-                { id: 'c', label: '⚙️ Pure C' },
-                { id: 'cpp', label: '⚡ Modern C++' },
-                { id: 'python', label: '🐍 Python' },
-                { id: 'javascript', label: '🟨 JavaScript' },
-              ] as { id: CodeLanguage; label: string }[]
+                { id: 'c', label: '⚙️ Pure C', short: '⚙️ C' },
+                { id: 'cpp', label: '⚡ Modern C++', short: '⚡ C++' },
+                { id: 'python', label: '🐍 Python', short: '🐍 Py' },
+                { id: 'javascript', label: '🟨 JavaScript', short: '🟨 JS' },
+              ] as { id: CodeLanguage; label: string; short: string }[]
             ).map(item => {
               const isActive = language === item.id;
               return (
@@ -1065,13 +1156,14 @@ export const CodeZoneModal: React.FC<Props> = ({
                   key={item.id}
                   type="button"
                   onClick={() => handleLanguageChange(item.id)}
-                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl font-black transition-all cursor-pointer flex items-center gap-1.5 shrink-0 text-xs ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl font-black transition-all cursor-pointer flex items-center gap-1 shrink-0 text-xs ${
                     isActive
                       ? 'bg-brand-primary text-white shadow-md'
                       : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                   }`}
                 >
-                  {item.label}
+                  <span className="hidden xs:inline">{item.label}</span>
+                  <span className="xs:hidden">{item.short}</span>
                 </button>
               );
             })}
@@ -1083,17 +1175,28 @@ export const CodeZoneModal: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => setIsProblemPanelCollapsed(!isProblemPanelCollapsed)}
-                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer flex items-center gap-1"
+                className="hidden md:flex px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer items-center gap-1"
               >
                 <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{isProblemPanelCollapsed ? 'Show Problem' : 'Hide Problem'}</span>
+              </button>
+
+              {/* Reset on mobile (< sm) */}
+              <button
+                type="button"
+                onClick={() => handleResetTemplate()}
+                className="sm:hidden px-2 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer flex items-center gap-1"
+                title="Reset starter code"
+              >
+                <RotateCcw className="w-3 h-3 text-slate-400" />
+                <span>Reset</span>
               </button>
 
               {/* Toggle STDIN */}
               <button
                 type="button"
                 onClick={() => setShowStdin(!showStdin)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-colors flex items-center gap-1 cursor-pointer ${
+                className={`px-2 sm:px-2.5 py-1 rounded-lg text-[11px] font-black transition-colors flex items-center gap-1 cursor-pointer shrink-0 ${
                   showStdin
                     ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
@@ -1115,7 +1218,7 @@ export const CodeZoneModal: React.FC<Props> = ({
                     key={tmplName}
                     type="button"
                     onClick={() => handleResetTemplate(tmplName)}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                    className="px-2 sm:px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer shrink-0"
                   >
                     {tmplName}
                   </button>
@@ -1126,7 +1229,7 @@ export const CodeZoneModal: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => setShowStdin(!showStdin)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-colors flex items-center gap-1 cursor-pointer ${
+                className={`px-2 sm:px-2.5 py-1 rounded-lg text-[11px] font-black transition-colors flex items-center gap-1 cursor-pointer shrink-0 ${
                   showStdin
                     ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
@@ -1137,6 +1240,71 @@ export const CodeZoneModal: React.FC<Props> = ({
               </button>
             </div>
           )}
+        </div>
+
+        {/* Mobile Segmented Workspace Switcher (< md only) */}
+        <div className="flex md:hidden items-center border-b border-slate-800 bg-[#0A0E18] px-2 py-1 gap-1 shrink-0">
+          {problem && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                setMobileTab('problem');
+              }}
+              className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                mobileTab === 'problem'
+                  ? 'bg-slate-800 text-cyan-400 border border-slate-700/80 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Problem</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              setMobileTab('code');
+            }}
+            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              mobileTab === 'code'
+                ? 'bg-slate-800 text-brand-green border border-slate-700/80 shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Terminal className="w-3.5 h-3.5" />
+            <span>Code</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              setMobileTab('tests');
+              if (problem) {
+                setActiveBottomTab('tests');
+              } else {
+                setActiveBottomTab('terminal');
+              }
+            }}
+            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer relative ${
+              mobileTab === 'tests'
+                ? 'bg-slate-800 text-purple-400 border border-slate-700/80 shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Play className="w-3.5 h-3.5" />
+            <span>{problem ? 'Test Results' : 'Console'}</span>
+            {evaluationSummary && (
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  evaluationSummary.verdict === 'Accepted' ? 'bg-emerald-400' : 'bg-rose-400'
+                }`}
+              />
+            )}
+          </button>
         </div>
 
         {/* Optional STDIN Drawer */}
@@ -1159,7 +1327,11 @@ export const CodeZoneModal: React.FC<Props> = ({
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
           {/* Problem Statement Drawer */}
           {problem && !isProblemPanelCollapsed && (
-            <div className="w-full md:w-[38%] border-r-0 md:border-r border-b md:border-b-0 border-slate-800 bg-[#090E1A] flex flex-col overflow-hidden text-left min-h-[35%] md:min-h-0">
+            <div
+              className={`w-full md:w-[38%] border-r-0 md:border-r border-b md:border-b-0 border-slate-800 bg-[#090E1A] flex-col overflow-hidden text-left ${
+                mobileTab === 'problem' ? 'flex flex-1 min-h-0' : 'hidden md:flex md:min-h-0'
+              }`}
+            >
               <div className="p-3 sm:p-4 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-cyan-400" />
@@ -1223,14 +1395,215 @@ export const CodeZoneModal: React.FC<Props> = ({
                     </ul>
                   </div>
                 )}
+
+                {/* Progressive Hints (Attempt-First Learning) */}
+                {problem.hints && problem.hints.length > 0 && (
+                  <div className="space-y-2 pt-3 border-t border-slate-800">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-[11px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <Lightbulb className="w-3.5 h-3.5 fill-amber-400/20" />
+                        <span>Hints ({revealedHintsCount}/{problem.hints.length})</span>
+                      </h4>
+                      {revealedHintsCount < problem.hints.length ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sound.playClick();
+                            setRevealedHintsCount(prev => prev + 1);
+                          }}
+                          className="text-[10px] font-black uppercase tracking-wider text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-lg border border-amber-500/30 transition-all cursor-pointer flex items-center gap-1"
+                        >
+                          <span>Reveal Hint {revealedHintsCount + 1}</span>
+                        </button>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-500">All hints revealed</span>
+                      )}
+                    </div>
+
+                    {revealedHintsCount > 0 ? (
+                      <div className="space-y-2">
+                        {problem.hints.slice(0, revealedHintsCount).map((hint, idx) => (
+                          <div
+                            key={idx}
+                            className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs text-slate-300 space-y-1"
+                          >
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 block">
+                              Hint {idx + 1}
+                            </span>
+                            <p className="leading-relaxed font-sans">{hint}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-slate-500 italic">
+                        Stuck on the algorithm? Reveal progressive hints one by one without spoiling the solution code.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Explicit Reference Solution Disclosure (Attempt-First Learning) */}
+                {problem.solutions && Object.keys(problem.solutions).length > 0 && (
+                  <div className="space-y-2.5 pt-3 border-t border-slate-800">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Reference Solution</span>
+                      </h4>
+                      {isSolutionRevealed && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sound.playClick();
+                            setIsSolutionRevealed(false);
+                          }}
+                          className="text-[10px] font-bold text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer"
+                        >
+                          <EyeOff className="w-3 h-3" />
+                          <span>Hide</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {!isSolutionRevealed ? (
+                      !showSolutionConfirm ? (
+                        <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center space-y-2">
+                          <p className="text-xs text-slate-400">
+                            Reference solutions are hidden by default to prioritize your own problem-solving attempt.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sound.playClick();
+                              setShowSolutionConfirm(true);
+                            }}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all cursor-pointer inline-flex items-center gap-1.5"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                            <span>View Reference Solution</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-left space-y-2.5">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                              <p className="text-xs font-bold text-amber-400">
+                                Reveal Reference Solution?
+                              </p>
+                              <p className="text-[11px] text-slate-300 leading-normal">
+                                Attempting to write and test your own code builds deep mastery. If you are stuck, try using progressive hints first!
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-end gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playClick();
+                                setShowSolutionConfirm(false);
+                              }}
+                              className="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-800/80 hover:bg-slate-800 cursor-pointer"
+                            >
+                              Keep Trying
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playClick();
+                                setIsSolutionRevealed(true);
+                                setShowSolutionConfirm(false);
+                              }}
+                              className="px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider text-amber-950 bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer shadow-sm"
+                            >
+                              Reveal Solution
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    ) : (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between gap-2 overflow-x-auto">
+                          <div className="flex items-center gap-1">
+                            {availableSolutionLangs.map(lang => (
+                              <button
+                                key={lang}
+                                type="button"
+                                onClick={() => {
+                                  sound.playClick();
+                                  setSolutionLanguage(lang);
+                                }}
+                                className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all ${
+                                  solutionLanguage === lang
+                                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
+                                    : 'text-slate-500 hover:text-slate-300'
+                                }`}
+                              >
+                                {lang === 'cpp' ? 'C++' : lang}
+                              </button>
+                            ))}
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={handleCopySolution}
+                              className="px-2 py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-slate-200 bg-slate-800/80 hover:bg-slate-800 flex items-center gap-1 cursor-pointer"
+                              title="Copy solution code"
+                            >
+                              {copiedSolution ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                              <span>{copiedSolution ? 'Copied' : 'Copy'}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleLoadSolutionIntoEditor}
+                              className="px-2 py-1 rounded-lg text-[10px] font-black text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 border border-cyan-800/60 flex items-center gap-1 cursor-pointer"
+                              title="Load this reference solution into your editor"
+                            >
+                              <Code2 className="w-3 h-3" />
+                              <span>Load into Editor</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-[#060912] border border-slate-800 font-mono text-xs overflow-x-auto text-slate-200 max-h-60 overflow-y-auto">
+                          <pre className="whitespace-pre">{currentSolutionCode}</pre>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Mobile Quick Action to Open Code Editor */}
+                <div className="md:hidden pt-4 pb-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setMobileTab('code');
+                    }}
+                    className="btn-3d btn-3d-green w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 text-white shadow-md cursor-pointer"
+                  >
+                    <Terminal className="w-4 h-4" />
+                    <span>Open Code Editor</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           {/* Center/Right: Code Editor & Bottom Drawer */}
-          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div
+            className={`flex-1 flex flex-col min-w-0 overflow-hidden ${
+              mobileTab === 'problem' ? 'hidden md:flex' : 'flex'
+            }`}
+          >
             {/* Editor Workspace */}
-            <div className="flex-1 flex flex-col border-b border-slate-800 bg-[#070B12] min-h-[50%] relative">
+            <div
+              className={`flex-col border-b border-slate-800 bg-[#070B12] relative ${
+                mobileTab === 'tests' ? 'hidden md:flex md:flex-1 md:min-h-[50%]' : 'flex flex-1 min-h-0 md:min-h-[50%]'
+              }`}
+            >
               <div className="flex-1 flex overflow-hidden">
                 {/* Line Numbers Gutter */}
                 <div
@@ -1263,28 +1636,45 @@ export const CodeZoneModal: React.FC<Props> = ({
                     autoCapitalize="off"
                     autoComplete="off"
                     autoCorrect="off"
-                    className="codezone-textarea absolute inset-0 w-full h-full p-3.5 bg-transparent text-transparent caret-sky-400 outline-none resize-none overflow-auto m-0 border-0 whitespace-pre z-10 selection:bg-sky-500/30 selection:text-transparent"
+                    wrap="off"
+                    className="codezone-textarea absolute inset-0 w-full h-full p-3.5 bg-transparent text-transparent caret-sky-400 outline-none resize-none overflow-auto m-0 border-0 whitespace-pre z-10 selection:bg-sky-500/30 selection:text-transparent overscroll-contain"
                     placeholder="// Type or paste your code here..."
                   />
                 </div>
               </div>
 
               {/* Editor Status Line */}
-              <div className="px-4 py-1.5 border-t border-slate-800/80 bg-[#080C14] flex items-center justify-between text-[11px] font-mono text-slate-500 shrink-0">
-                <div className="flex items-center gap-3">
+              <div className="px-3 sm:px-4 py-1.5 border-t border-slate-800/80 bg-[#080C14] flex items-center justify-between text-[11px] font-mono text-slate-500 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <span>Lines: {lineCount}</span>
-                  <span>Length: {code.length}</span>
+                  <span>Len: {code.length}</span>
                   <span className="hidden sm:inline">Press Ctrl+Enter to Run</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span>Tab: 4 spaces</span>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  {/* Copy button on mobile */}
+                  <button
+                    type="button"
+                    onClick={handleCopyCode}
+                    className="sm:hidden flex items-center gap-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    title="Copy code"
+                  >
+                    {copiedCode ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedCode ? 'Copied' : 'Copy'}</span>
+                  </button>
+                  <span className="hidden sm:inline">Tab: 4 spaces</span>
                   <span>UTF-8</span>
                 </div>
               </div>
             </div>
 
             {/* Bottom Console / Test Results Drawer */}
-            <div className="h-[42%] min-h-[170px] flex flex-col bg-[#050810] overflow-hidden">
+            <div
+              className={`flex flex-col bg-[#050810] overflow-hidden ${
+                mobileTab === 'tests'
+                  ? 'flex-1 min-h-0'
+                  : 'hidden md:flex md:h-[42%] md:min-h-[170px]'
+              }`}
+            >
               {/* Bottom Tabs */}
               <div className="px-4 py-1.5 border-b border-slate-800/80 bg-[#090D18] flex items-center justify-between text-xs font-mono shrink-0">
                 <div className="flex items-center gap-2">
@@ -1421,21 +1811,21 @@ export const CodeZoneModal: React.FC<Props> = ({
                               </div>
                               <div>
                                 <span className="text-slate-500 text-[10px] block">Input:</span>
-                                <div className="p-1 rounded bg-[#03060c] text-slate-300 truncate">
+                                <div className="p-1.5 rounded bg-[#03060c] text-slate-300 break-all whitespace-pre-wrap">
                                   {res.input}
                                 </div>
                               </div>
                               <div className="grid grid-cols-2 gap-1 pt-0.5">
                                 <div>
                                   <span className="text-slate-500 text-[10px] block">Expected:</span>
-                                  <div className="p-1 rounded bg-[#03060c] text-emerald-400 truncate">
+                                  <div className="p-1.5 rounded bg-[#03060c] text-emerald-400 break-all whitespace-pre-wrap">
                                     {res.expectedOutput}
                                   </div>
                                 </div>
                                 <div>
                                   <span className="text-slate-500 text-[10px] block">Output:</span>
                                   <div
-                                    className={`p-1 rounded bg-[#03060c] truncate ${
+                                    className={`p-1.5 rounded bg-[#03060c] break-all whitespace-pre-wrap ${
                                       res.passed ? 'text-emerald-400' : 'text-rose-400'
                                     }`}
                                   >

@@ -438,7 +438,7 @@ describe('CodeZone Integration & Problem Evaluation', () => {
 
   it('Python evaluation: Correct solution evaluates to Accepted', async () => {
     const spec = getDsaProblemSpec('two-sum');
-    const correctPython = spec.starterTemplates.python;
+    const correctPython = spec.solutions?.python || spec.starterTemplates.python;
 
     const summary = await evaluateTestCases(correctPython, 'python', spec.sampleCases);
     expect(summary.allPassed).toBe(true);
@@ -457,7 +457,7 @@ describe('CodeZone Integration & Problem Evaluation', () => {
 
   it('C++ evaluation: Correct solution evaluates to Accepted', async () => {
     const spec = getDsaProblemSpec('two-sum');
-    const correctCpp = spec.starterTemplates.cpp;
+    const correctCpp = spec.solutions?.cpp || spec.starterTemplates.cpp;
 
     const summary = await evaluateTestCases(correctCpp, 'cpp', spec.sampleCases);
     expect(summary.allPassed).toBe(true);
@@ -481,7 +481,7 @@ int main() {
 
   it('C evaluation: Correct solution evaluates to Accepted', async () => {
     const spec = getDsaProblemSpec('two-sum');
-    const correctC = spec.starterTemplates.c;
+    const correctC = spec.solutions?.c || spec.starterTemplates.c;
 
     const summary = await evaluateTestCases(correctC, 'c', spec.sampleCases);
     expect(summary.allPassed).toBe(true);

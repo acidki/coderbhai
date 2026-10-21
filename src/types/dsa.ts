@@ -35,6 +35,8 @@ export interface DsaProblemSpec {
   sampleCases: TestCase[];
   hiddenCases: TestCase[];
   starterTemplates: Record<CodeLanguage, string>;
+  solutions?: Partial<Record<CodeLanguage, string>>;
+  hints?: string[];
   roadmapId?: DsaRoadmapId;
 }
 

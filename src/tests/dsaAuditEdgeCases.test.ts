@@ -9,22 +9,26 @@ describe('Audit: Multi-Problem Evaluation Across Categories', () => {
     expect(spec).toBeDefined();
 
     // 1. JavaScript
-    const jsSummary = await evaluateTestCases(spec.starterTemplates.javascript, 'javascript', spec.sampleCases);
+    const jsCode = spec.solutions?.javascript || spec.starterTemplates.javascript;
+    const jsSummary = await evaluateTestCases(jsCode, 'javascript', spec.sampleCases);
     expect(jsSummary.verdict).toBe('Accepted');
     expect(jsSummary.allPassed).toBe(true);
 
     // 2. Python
-    const pySummary = await evaluateTestCases(spec.starterTemplates.python, 'python', spec.sampleCases);
+    const pyCode = spec.solutions?.python || spec.starterTemplates.python;
+    const pySummary = await evaluateTestCases(pyCode, 'python', spec.sampleCases);
     expect(pySummary.verdict).toBe('Accepted');
     expect(pySummary.allPassed).toBe(true);
 
     // 3. C++
-    const cppSummary = await evaluateTestCases(spec.starterTemplates.cpp, 'cpp', spec.sampleCases);
+    const cppCode = spec.solutions?.cpp || spec.starterTemplates.cpp;
+    const cppSummary = await evaluateTestCases(cppCode, 'cpp', spec.sampleCases);
     expect(cppSummary.verdict).toBe('Accepted');
     expect(cppSummary.allPassed).toBe(true);
 
     // 4. C
-    const cSummary = await evaluateTestCases(spec.starterTemplates.c, 'c', spec.sampleCases);
+    const cCode = spec.solutions?.c || spec.starterTemplates.c;
+    const cSummary = await evaluateTestCases(cCode, 'c', spec.sampleCases);
     expect(cSummary.verdict).toBe('Accepted');
     expect(cSummary.allPassed).toBe(true);
   });
@@ -33,10 +37,12 @@ describe('Audit: Multi-Problem Evaluation Across Categories', () => {
     const spec = getDsaProblemSpec('valid-anagram');
     expect(spec).toBeDefined();
 
-    const jsSummary = await evaluateTestCases(spec.starterTemplates.javascript, 'javascript', spec.sampleCases);
+    const jsCode = spec.solutions?.javascript || spec.starterTemplates.javascript;
+    const jsSummary = await evaluateTestCases(jsCode, 'javascript', spec.sampleCases);
     expect(jsSummary.verdict).toBe('Accepted');
 
-    const pySummary = await evaluateTestCases(spec.starterTemplates.python, 'python', spec.sampleCases);
+    const pyCode = spec.solutions?.python || spec.starterTemplates.python;
+    const pySummary = await evaluateTestCases(pyCode, 'python', spec.sampleCases);
     expect(pySummary.verdict).toBe('Accepted');
   });
 
@@ -44,7 +50,8 @@ describe('Audit: Multi-Problem Evaluation Across Categories', () => {
     const spec = getDsaProblemSpec('valid-parentheses');
     expect(spec).toBeDefined();
 
-    const jsSummary = await evaluateTestCases(spec.starterTemplates.javascript, 'javascript', spec.sampleCases);
+    const jsCode = spec.solutions?.javascript || spec.starterTemplates.javascript;
+    const jsSummary = await evaluateTestCases(jsCode, 'javascript', spec.sampleCases);
     expect(jsSummary.verdict).toBe('Accepted');
   });
 
@@ -52,7 +59,8 @@ describe('Audit: Multi-Problem Evaluation Across Categories', () => {
     const spec = getDsaProblemSpec('binary-search');
     expect(spec).toBeDefined();
 
-    const jsSummary = await evaluateTestCases(spec.starterTemplates.javascript, 'javascript', spec.sampleCases);
+    const jsCode = spec.solutions?.javascript || spec.starterTemplates.javascript;
+    const jsSummary = await evaluateTestCases(jsCode, 'javascript', spec.sampleCases);
     expect(jsSummary.verdict).toBe('Accepted');
   });
 

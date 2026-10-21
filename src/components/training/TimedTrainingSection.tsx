@@ -49,7 +49,12 @@ import {
   AlertTriangle,
   AlertCircle,
   BookOpen,
-  List
+  List,
+  Eye,
+  EyeOff,
+  Lightbulb,
+  Copy,
+  Check
 } from 'lucide-react';
 
 export interface TimedTrainingSectionProps {
@@ -139,6 +144,13 @@ export const TimedTrainingSection: React.FC<TimedTrainingSectionProps> = ({
   const [drawerSearchQuery, setDrawerSearchQuery] = useState('');
   const [drawerSheet, setDrawerSheet] = useState<ProblemSheet>('all');
 
+  // Attempt-first solution disclosure & hints state
+  const [revealedHintsCount, setRevealedHintsCount] = useState<number>(0);
+  const [isSolutionRevealed, setIsSolutionRevealed] = useState<boolean>(false);
+  const [showSolutionConfirm, setShowSolutionConfirm] = useState<boolean>(false);
+  const [solutionLanguage, setSolutionLanguage] = useState<CodeLanguage>('python');
+  const [copiedSolution, setCopiedSolution] = useState<boolean>(false);
+
   // Textarea & Syntax highlight sync
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const preRef = useRef<HTMLPreElement>(null);
@@ -199,9 +211,59 @@ export const TimedTrainingSection: React.FC<TimedTrainingSectionProps> = ({
     setSolveRecordResult(null);
     hasRecordedResultRef.current = false;
     isSubmittingRef.current = false;
+    setRevealedHintsCount(0);
+    setIsSolutionRevealed(false);
+    setShowSolutionConfirm(false);
+    setCopiedSolution(false);
     setView('training');
     setMobileTab('problem');
     startTimer(false);
+  };
+
+  // Reset solution disclosure and hints whenever active problem changes to prevent leakage across problems
+  useEffect(() => {
+    setRevealedHintsCount(0);
+    setIsSolutionRevealed(false);
+    setShowSolutionConfirm(false);
+    setCopiedSolution(false);
+    if (activeProblem?.solutions) {
+      const langs = Object.keys(activeProblem.solutions) as CodeLanguage[];
+      if (langs.length > 0) {
+        setSolutionLanguage(langs.includes(selectedLanguage) ? selectedLanguage : langs[0]);
+      }
+    }
+  }, [activeProblem?.id]);
+
+  const activeProblemSolutions = activeProblem?.solutions;
+  const availableSolutionLangs = useMemo(() => {
+    if (!activeProblemSolutions) return [];
+    return Object.keys(activeProblemSolutions) as CodeLanguage[];
+  }, [activeProblemSolutions]);
+
+  const currentSolutionCode = useMemo(() => {
+    if (!activeProblemSolutions) return '';
+    return (
+      activeProblemSolutions[solutionLanguage] ||
+      activeProblemSolutions[selectedLanguage] ||
+      Object.values(activeProblemSolutions)[0] ||
+      ''
+    );
+  }, [activeProblemSolutions, solutionLanguage, selectedLanguage]);
+
+  const handleCopySolution = () => {
+    if (!currentSolutionCode) return;
+    navigator.clipboard.writeText(currentSolutionCode);
+    setCopiedSolution(true);
+    sound.playClick();
+    setTimeout(() => setCopiedSolution(false), 2000);
+  };
+
+  const handleLoadSolutionIntoEditor = () => {
+    if (!currentSolutionCode) return;
+    handleSelectLanguage(solutionLanguage);
+    setCode(currentSolutionCode);
+    sound.playSuccess();
+    setMobileTab('code');
   };
 
   const isComponentMountedRef = useRef(true);
@@ -1112,6 +1174,184 @@ export const TimedTrainingSection: React.FC<TimedTrainingSectionProps> = ({
                     </div>
                   ))}
                 </div>
+
+                {/* Progressive Hints (Attempt-First Learning) */}
+                {activeProblem.hints && activeProblem.hints.length > 0 && (
+                  <div className="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-[11px] font-black uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
+                        <Lightbulb className="w-3.5 h-3.5 fill-amber-500/20" />
+                        <span>Hints ({revealedHintsCount}/{activeProblem.hints.length})</span>
+                      </h4>
+                      {revealedHintsCount < activeProblem.hints.length ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sound.playClick();
+                            setRevealedHintsCount(prev => prev + 1);
+                          }}
+                          className="text-[10px] font-black uppercase tracking-wider text-amber-500 hover:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-lg border border-amber-500/30 transition-all cursor-pointer flex items-center gap-1"
+                        >
+                          <span>Reveal Hint {revealedHintsCount + 1}</span>
+                        </button>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-400">All hints revealed</span>
+                      )}
+                    </div>
+
+                    {revealedHintsCount > 0 ? (
+                      <div className="space-y-2">
+                        {activeProblem.hints.slice(0, revealedHintsCount).map((hint, idx) => (
+                          <div
+                            key={idx}
+                            className="p-3 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 text-xs text-slate-700 dark:text-slate-300 space-y-1"
+                          >
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-500 block">
+                              Hint {idx + 1}
+                            </span>
+                            <p className="leading-relaxed font-sans">{hint}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">
+                        Stuck on the algorithm? Reveal progressive hints one by one without spoiling the solution code.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Explicit Reference Solution Disclosure (Attempt-First Learning) */}
+                {activeProblem.solutions && Object.keys(activeProblem.solutions).length > 0 && (
+                  <div className="space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Reference Solution</span>
+                      </h4>
+                      {isSolutionRevealed && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sound.playClick();
+                            setIsSolutionRevealed(false);
+                          }}
+                          className="text-[10px] font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer"
+                        >
+                          <EyeOff className="w-3 h-3" />
+                          <span>Hide</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {!isSolutionRevealed ? (
+                      !showSolutionConfirm ? (
+                        <div className="p-3 rounded-2xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-center space-y-2">
+                          <p className="text-xs text-slate-600 dark:text-slate-400">
+                            Reference solutions are hidden by default to prioritize your own problem-solving attempt.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sound.playClick();
+                              setShowSolutionConfirm(true);
+                            }}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-amber-500" />
+                            <span>View Reference Solution</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-left space-y-2.5">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                              <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                                Reveal Reference Solution?
+                              </p>
+                              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-normal">
+                                Attempting to write and test your own code builds deep mastery. If you are stuck, try using progressive hints first!
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-end gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playClick();
+                                setShowSolutionConfirm(false);
+                              }}
+                              className="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/80 dark:bg-slate-800/80 cursor-pointer"
+                            >
+                              Keep Trying
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playClick();
+                                setIsSolutionRevealed(true);
+                                setShowSolutionConfirm(false);
+                              }}
+                              className="px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider text-slate-950 bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer shadow-sm"
+                            >
+                              Reveal Solution
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    ) : (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between gap-2 overflow-x-auto">
+                          <div className="flex items-center gap-1">
+                            {availableSolutionLangs.map(lang => (
+                              <button
+                                key={lang}
+                                type="button"
+                                onClick={() => {
+                                  sound.playClick();
+                                  setSolutionLanguage(lang);
+                                }}
+                                className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all ${
+                                  solutionLanguage === lang
+                                    ? 'bg-amber-500 text-slate-950 font-bold'
+                                    : 'text-slate-500 hover:text-slate-300'
+                                }`}
+                              >
+                                {lang === 'cpp' ? 'C++' : lang}
+                              </button>
+                            ))}
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={handleCopySolution}
+                              className="px-2 py-1 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center gap-1 cursor-pointer"
+                              title="Copy solution code"
+                            >
+                              {copiedSolution ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                              <span>{copiedSolution ? 'Copied' : 'Copy'}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleLoadSolutionIntoEditor}
+                              className="px-2 py-1 rounded-lg text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 flex items-center gap-1 cursor-pointer"
+                              title="Load this reference solution into your editor"
+                            >
+                              <Code2 className="w-3 h-3" />
+                              <span>Load into Editor</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-xs overflow-x-auto text-slate-800 dark:text-slate-200 max-h-60 overflow-y-auto">
+                          <pre className="whitespace-pre">{currentSolutionCode}</pre>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Mobile Quick Action to Open Code Editor */}
@@ -1128,7 +1368,7 @@ export const TimedTrainingSection: React.FC<TimedTrainingSectionProps> = ({
                   className="btn-3d btn-3d-yellow py-2 px-3.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-slate-950 cursor-pointer shadow-md"
                 >
                   <Code2 className="w-3.5 h-3.5" />
-                  <span>Code Solution</span>
+                  <span>Open Code Editor</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>

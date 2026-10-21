@@ -53,6 +53,57 @@ target = int(line1[1])
 nums = list(map(int, input().split()))
 
 # Write your solution below:
+`,
+      javascript: `// Input format:
+// Line 1: n target
+// Line 2: array elements
+function solve(input) {
+  const lines = input.trim().split('\\n');
+  const [n, target] = lines[0].trim().split(/\\s+/).map(Number);
+  const nums = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below:
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+int main() {
+    int n, target;
+    if (!(std::cin >> n >> target)) return 0;
+    std::vector<int> nums(n);
+    for (int i = 0; i < n; ++i) std::cin >> nums[i];
+
+    // Write your solution below:
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n, target;
+    if (scanf("%d %d", &n, &target) != 2) return 0;
+    int nums[1000];
+    for (int i = 0; i < n; ++i) {
+        scanf("%d", &nums[i]);
+    }
+
+    // Write your solution below:
+    return 0;
+}
+`
+    },
+    hints: [
+      'A brute force checks every pair in O(n^2). Can you use a hash map to remember previously seen numbers?',
+      'Check if target - nums[i] already exists in your map. If so, you found your pair!'
+    ],
+    solutions: {
+      python: `line1 = input().split()
+n = int(line1[0])
+target = int(line1[1])
+nums = list(map(int, input().split()))
+
 seen = {}
 for i, num in enumerate(nums):
     diff = target - num
@@ -61,10 +112,7 @@ for i, num in enumerate(nums):
         break
     seen[num] = i
 `,
-      javascript: `// Input format:
-// Line 1: n target
-// Line 2: array elements
-function solve(input) {
+      javascript: `function solve(input) {
   const lines = input.trim().split('\\n');
   const [n, target] = lines[0].trim().split(/\\s+/).map(Number);
   const nums = lines[1].trim().split(/\\s+/).map(Number);
@@ -168,7 +216,47 @@ int main() {
     ],
     starterTemplates: {
       python: `s = input().strip()
-# Print the reversed string:
+# Write your solution below to print the reversed string:
+
+`,
+      javascript: `function solve(input) {
+  const s = input.trim();
+  // Write your solution below to print the reversed string:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <string>
+
+int main() {
+    std::string s;
+    if (std::cin >> s) {
+        // Write your solution below to print the reversed string:
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char s[1024];
+    if (scanf("%s", s) == 1) {
+        // Write your solution below to print the reversed string:
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Iterate backward from the end of the string, or use two pointers at opposite ends.',
+      'In Python, string slicing s[::-1] provides an instant reversal.'
+    ],
+    solutions: {
+      python: `s = input().strip()
 print(s[::-1])
 `,
       javascript: `function solve(input) {
@@ -249,6 +337,47 @@ An integer is a palindrome when it reads the same backward as forward. Negative 
       }
     ],
     starterTemplates: {
+      python: `x = input().strip()
+# Write your solution below to print "true" or "false":
+
+`,
+      javascript: `function solve(input) {
+  const str = input.trim();
+  // Write your solution below to print "true" or "false":
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <string>
+
+int main() {
+    std::string s;
+    if (std::cin >> s) {
+        // Write your solution below to print "true" or "false":
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char s[100];
+    if (scanf("%s", s) == 1) {
+        // Write your solution below to print "true" or "false":
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Negative numbers cannot be palindromes because the negative sign only appears on the left.',
+      'Check whether the string representation reads identically from both ends.'
+    ],
+    solutions: {
       python: `x = input().strip()
 if x.startswith('-'):
     print("false")
@@ -352,6 +481,45 @@ int main() {
       }
     ],
     starterTemplates: {
+      python: `n = int(input().strip())
+# Write your solution below:
+
+`,
+      javascript: `function solve(input) {
+  const n = parseInt(input.trim(), 10);
+  // Write your solution below:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+
+int main() {
+    int n;
+    if (std::cin >> n) {
+        // Write your solution below:
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n;
+    if (scanf("%d", &n) == 1) {
+        // Write your solution below:
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Test for divisibility by 15 (both 3 and 5) first before testing 3 or 5 alone.',
+      'Construct a list of tokens and join them with spaces when outputting.'
+    ],
+    solutions: {
       python: `n = int(input().strip())
 res = []
 for i in range(1, n + 1):
@@ -459,6 +627,45 @@ Given \`n\`, calculate and print \`F(n)\`.`,
       }
     ],
     starterTemplates: {
+      python: `n = int(input().strip())
+# Write your solution below to calculate and print F(n):
+
+`,
+      javascript: `function solve(input) {
+  const n = parseInt(input.trim(), 10);
+  // Write your solution below to calculate and print F(n):
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+
+int main() {
+    int n;
+    if (std::cin >> n) {
+        // Write your solution below to calculate and print F(n):
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n;
+    if (scanf("%d", &n) == 1) {
+        // Write your solution below to calculate and print F(n):
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'The base cases are F(0) = 0 and F(1) = 1.',
+      'You can compute F(n) in O(n) time using two variables (a, b) to accumulate the sum.'
+    ],
+    solutions: {
       python: `n = int(input().strip())
 if n <= 1:
     print(n)
@@ -574,6 +781,47 @@ Print \`true\` if valid, else \`false\`.`,
       }
     ],
     starterTemplates: {
+      python: `s = input().strip()
+# Write your solution below to print "true" or "false":
+
+`,
+      javascript: `function solve(input) {
+  const s = input.trim();
+  // Write your solution below to print "true" or "false":
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <string>
+
+int main() {
+    std::string s;
+    if (std::cin >> s) {
+        // Write your solution below to print "true" or "false":
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char s[1000];
+    if (scanf("%s", s) == 1) {
+        // Write your solution below to print "true" or "false":
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'A Last-In-First-Out (LIFO) stack is well suited for nested bracket structures.',
+      'Push open brackets onto the stack. On each closing bracket, pop from the stack and verify that it matches.'
+    ],
+    solutions: {
       python: `s = input().strip()
 stack = []
 mapping = {')': '(', '}': '{', ']': '['}
@@ -721,6 +969,57 @@ A subarray is a contiguous non-empty sequence of elements within an array.`,
       python: `n = int(input().strip())
 nums = list(map(int, input().split()))
 
+# Write your solution below to find and print the maximum subarray sum:
+
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const n = parseInt(lines[0], 10);
+  const nums = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below to find and print the maximum subarray sum:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+int main() {
+    int n;
+    if (std::cin >> n) {
+        std::vector<int> nums(n);
+        for (int i = 0; i < n; ++i) std::cin >> nums[i];
+
+        // Write your solution below to find and print the maximum subarray sum:
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n;
+    if (scanf("%d", &n) == 1) {
+        int nums[1000];
+        for (int i = 0; i < n; ++i) scanf("%d", &nums[i]);
+
+        // Write your solution below to find and print the maximum subarray sum:
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Kadane\'s algorithm keeps track of the maximum sum ending at the current position.',
+      'At each element x, decide whether to add x to the running sum (current + x) or start a new subarray at x.'
+    ],
+    solutions: {
+      python: `n = int(input().strip())
+nums = list(map(int, input().split()))
+
 max_sum = nums[0]
 current = nums[0]
 
@@ -830,6 +1129,57 @@ int main() {
       }
     ],
     starterTemplates: {
+      python: `line1 = input().split()
+n = int(line1[0])
+target = int(line1[1])
+nums = list(map(int, input().split()))
+
+# Write your solution below to search for target:
+
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const [n, target] = lines[0].trim().split(/\\s+/).map(Number);
+  const nums = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below to search for target:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+int main() {
+    int n, target;
+    if (!(std::cin >> n >> target)) return 0;
+    std::vector<int> nums(n);
+    for (int i = 0; i < n; ++i) std::cin >> nums[i];
+
+    // Write your solution below to search for target:
+
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n, target;
+    if (scanf("%d %d", &n, &target) != 2) return 0;
+    int nums[10000];
+    for (int i = 0; i < n; ++i) scanf("%d", &nums[i]);
+
+    // Write your solution below to search for target:
+
+    return 0;
+}
+`
+    },
+    hints: [
+      'Since the array is sorted, comparing target with the middle element halves your search space.',
+      'Compute mid = low + (high - low) // 2 and narrow the range to the left or right half.'
+    ],
+    solutions: {
       python: `line1 = input().split()
 n = int(line1[0])
 target = int(line1[1])

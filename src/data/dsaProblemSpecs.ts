@@ -67,6 +67,71 @@ n, target = int(line1[0]), int(line1[1])
 nums = list(map(int, input().split()))
 
 def twoSum(nums, target):
+    # Write your solution below:
+    return []
+
+result = twoSum(nums, target)
+if result:
+    print(f"{result[0]} {result[1]}")
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+void twoSum(const std::vector<int>& nums, int n, int target) {
+    // Write your solution below:
+}
+
+int main() {
+    int n, target;
+    if (std::cin >> n >> target) {
+        std::vector<int> nums(n);
+        for (int i = 0; i < n; ++i) {
+            std::cin >> nums[i];
+        }
+        twoSum(nums, n, target);
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+void solveTwoSum(int nums[], int n, int target) {
+    // Write your solution below:
+}
+
+int main() {
+    int n, target;
+    if (scanf("%d %d", &n, &target) == 2) {
+        int nums[1000];
+        for (int i = 0; i < n; ++i) {
+            scanf("%d", &nums[i]);
+        }
+        solveTwoSum(nums, n, target);
+    }
+    return 0;
+}
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const [n, target] = lines[0].trim().split(/\\s+/).map(Number);
+  const nums = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below:
+}
+solve(stdin);
+`
+    },
+    hints: [
+      'A brute-force approach checks every pair in O(n^2) time. Can you use extra memory to speed this up?',
+      'Consider using a hash map to store visited numbers and look up the complement (target - num) in O(1) time.'
+    ],
+    solutions: {
+      python: `# Two Sum (NeetCode / LeetCode)
+line1 = input().split()
+n, target = int(line1[0]), int(line1[1])
+nums = list(map(int, input().split()))
+
+def twoSum(nums, target):
     seen = {}
     for i, num in enumerate(nums):
         diff = target - num
@@ -198,6 +263,71 @@ solve(stdin);
       }
     ],
     starterTemplates: {
+      python: `# Contains Duplicate (NeetCode / LeetCode)
+n = int(input().strip())
+nums = list(map(int, input().split()))
+
+def hasDuplicate(nums):
+    # Write your solution below:
+    return False
+
+print("true" if hasDuplicate(nums) else "false")
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+bool hasDuplicate(const std::vector<int>& nums) {
+    // Write your solution below:
+    return false;
+}
+
+int main() {
+    int n;
+    if (std::cin >> n) {
+        std::vector<int> nums(n);
+        for (int i = 0; i < n; ++i) {
+            std::cin >> nums[i];
+        }
+        std::cout << (hasDuplicate(nums) ? "true" : "false") << std::endl;
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+#include <stdbool.h>
+
+bool hasDuplicate(int* nums, int n) {
+    // Write your solution below:
+    return false;
+}
+
+int main() {
+    int n;
+    if (scanf("%d", &n) == 1) {
+        int nums[1000];
+        for (int i = 0; i < n; ++i) {
+            scanf("%d", &nums[i]);
+        }
+        printf("%s\\n", hasDuplicate(nums, n) ? "true" : "false");
+    }
+    return 0;
+}
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const n = parseInt(lines[0]);
+  const nums = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below:
+}
+solve(stdin);
+`
+    },
+    hints: [
+      'Can you track elements you have already seen in a data structure with O(1) lookups?',
+      'A hash set allows storing numbers as you iterate; if a number is already in the set, a duplicate exists.'
+    ],
+    solutions: {
       python: `# Contains Duplicate (NeetCode / LeetCode)
 n = int(input().strip())
 nums = list(map(int, input().split()))
@@ -338,6 +468,64 @@ s = parts[0]
 t = parts[1]
 
 def isAnagram(s, t):
+    # Write your solution below:
+    return False
+
+print("true" if isAnagram(s, t) else "false")
+`,
+      cpp: `#include <iostream>
+#include <string>
+
+bool isAnagram(const std::string& s, const std::string& t) {
+    // Write your solution below:
+    return false;
+}
+
+int main() {
+    std::string s, t;
+    if (std::cin >> s >> t) {
+        std::cout << (isAnagram(s, t) ? "true" : "false") << std::endl;
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+bool isAnagram(const char* s, const char* t) {
+    // Write your solution below:
+    return false;
+}
+
+int main() {
+    char s[1000], t[1000];
+    if (scanf("%s %s", s, t) == 2) {
+        printf("%s\\n", isAnagram(s, t) ? "true" : "false");
+    }
+    return 0;
+}
+`,
+      javascript: `function solve(input) {
+  const [s, t] = input.trim().split(/\\s+/);
+  if (!s || !t) return;
+
+  // Write your solution below:
+}
+solve(stdin);
+`
+    },
+    hints: [
+      'Two strings are anagrams if and only if they contain the exact same characters with identical frequencies.',
+      'Consider counting character frequencies using a frequency array of size 26 or a hash map.'
+    ],
+    solutions: {
+      python: `# Valid Anagram (NeetCode / LeetCode)
+parts = input().split()
+s = parts[0]
+t = parts[1]
+
+def isAnagram(s, t):
     if len(s) != len(t):
         return False
     return sorted(s) == sorted(t)
@@ -463,6 +651,60 @@ An input string is valid if:
       }
     ],
     starterTemplates: {
+      python: `# Valid Parentheses (NeetCode / LeetCode)
+s = input().strip()
+
+def isValid(s):
+    # Write your solution below:
+    return False
+
+print("true" if isValid(s) else "false")
+`,
+      cpp: `#include <iostream>
+#include <string>
+
+bool isValid(const std::string& s) {
+    // Write your solution below:
+    return false;
+}
+
+int main() {
+    std::string s;
+    if (std::cin >> s) {
+        std::cout << (isValid(s) ? "true" : "false") << std::endl;
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+#include <stdbool.h>
+
+bool isValid(const char* s) {
+    // Write your solution below:
+    return false;
+}
+
+int main() {
+    char s[10000];
+    if (scanf("%s", s) == 1) {
+        printf("%s\\n", isValid(s) ? "true" : "false");
+    }
+    return 0;
+}
+`,
+      javascript: `function solve(input) {
+  const s = input.trim();
+
+  // Write your solution below:
+}
+solve(stdin);
+`
+    },
+    hints: [
+      'A Last-In-First-Out (LIFO) stack data structure is ideal for matching pairs of brackets.',
+      'Push open brackets onto the stack. When you encounter a close bracket, check whether the top of the stack has its matching open bracket.'
+    ],
+    solutions: {
       python: `# Valid Parentheses (NeetCode / LeetCode)
 s = input().strip()
 
@@ -622,6 +864,68 @@ You must write an algorithm with \`O(log n)\` runtime complexity.`,
       }
     ],
     starterTemplates: {
+      python: `# Binary Search (NeetCode / LeetCode)
+line1 = input().split()
+n, target = int(line1[0]), int(line1[1])
+nums = list(map(int, input().split()))
+
+def search(nums, target):
+    # Write your solution below:
+    return -1
+
+print(search(nums, target))
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+int search(const std::vector<int>& nums, int target) {
+    // Write your solution below:
+    return -1;
+}
+
+int main() {
+    int n, target;
+    if (!(std::cin >> n >> target)) return 0;
+    std::vector<int> nums(n);
+    for (int i = 0; i < n; ++i) std::cin >> nums[i];
+
+    std::cout << search(nums, target) << std::endl;
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int search(int* nums, int n, int target) {
+    // Write your solution below:
+    return -1;
+}
+
+int main() {
+    int n, target;
+    if (scanf("%d %d", &n, &target) != 2) return 0;
+    int nums[10000];
+    for (int i = 0; i < n; ++i) {
+        scanf("%d", &nums[i]);
+    }
+    printf("%d\\n", search(nums, n, target));
+    return 0;
+}
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const [n, target] = lines[0].trim().split(/\\s+/).map(Number);
+  const nums = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below:
+}
+solve(stdin);
+`
+    },
+    hints: [
+      'Since the array is sorted, comparing target with the middle element lets you eliminate half the remaining search space.',
+      'Maintain low and high pointers, computing mid = low + (high - low) // 2 to avoid integer overflow.'
+    ],
+    solutions: {
       python: `# Binary Search (NeetCode / LeetCode)
 line1 = input().split()
 n, target = int(line1[0]), int(line1[1])

@@ -312,6 +312,8 @@ export interface ArenaChallenge {
   sampleCases: TestCase[];
   hiddenCases: TestCase[];
   starterTemplates: Record<CodeLanguage, string>;
+  solutions?: Partial<Record<CodeLanguage, string>>;
+  hints?: string[];
   status: 'pending' | 'approved' | 'rejected';
   reviewerName?: string;
   reviewedAt?: string;

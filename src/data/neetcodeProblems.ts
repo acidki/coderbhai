@@ -44,6 +44,54 @@ export const NEETCODE_PROBLEMS: ArenaChallenge[] = [
       python: `n = int(input().strip())
 nums = list(map(int, input().split()))
 
+# Write your solution below to print "true" or "false":
+
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const n = parseInt(lines[0], 10);
+  const nums = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below to print "true" or "false":
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+int main() {
+    int n;
+    if (std::cin >> n) {
+        // Write your solution below to print "true" or "false":
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n;
+    if (scanf("%d", &n) == 1) {
+        int nums[1000];
+        for (int i = 0; i < n; ++i) scanf("%d", &nums[i]);
+
+        // Write your solution below to print "true" or "false":
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Can you record elements you have already seen in a data structure with fast lookups?',
+      'Using a hash set allows checking if a number was already seen in O(1) time.'
+    ],
+    solutions: {
+      python: `n = int(input().strip())
+nums = list(map(int, input().split()))
+
 seen = set()
 dup = False
 for x in nums:
@@ -161,6 +209,50 @@ An **Anagram** is a word or phrase formed by rearranging the letters of a differ
     starterTemplates: {
       python: `s = input().strip()
 t = input().strip()
+# Write your solution below to print "true" or "false":
+
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const s = lines[0].trim();
+  const t = lines[1].trim();
+  // Write your solution below to print "true" or "false":
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <string>
+
+int main() {
+    std::string s, t;
+    if (std::cin >> s >> t) {
+        // Write your solution below to print "true" or "false":
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char s[1024], t[1024];
+    if (scanf("%s %s", s, t) == 2) {
+        // Write your solution below to print "true" or "false":
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Two strings are anagrams if their sorted characters are identical.',
+      'You can also count the occurrences of each character using a frequency table.'
+    ],
+    solutions: {
+      python: `s = input().strip()
+t = input().strip()
 print("true" if sorted(s) == sorted(t) else "false")
 `,
       javascript: `function solve(input) {
@@ -260,6 +352,57 @@ Print the maximum profit you can achieve. If you cannot achieve any profit, prin
       }
     ],
     starterTemplates: {
+      python: `n = int(input().strip())
+prices = list(map(int, input().split()))
+
+# Write your solution below to print the maximum profit:
+
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const n = parseInt(lines[0], 10);
+  const prices = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below to print the maximum profit:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+int main() {
+    int n;
+    if (std::cin >> n) {
+        std::vector<int> prices(n);
+        for (int i = 0; i < n; ++i) std::cin >> prices[i];
+
+        // Write your solution below to print the maximum profit:
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n;
+    if (scanf("%d", &n) == 1) {
+        int prices[1000];
+        for (int i = 0; i < n; ++i) scanf("%d", &prices[i]);
+
+        // Write your solution below to print the maximum profit:
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Keep track of the minimum price encountered so far as you iterate through the days.',
+      'At each day, the potential profit is prices[i] - min_price. Update max_profit accordingly.'
+    ],
+    solutions: {
       python: `n = int(input().strip())
 prices = list(map(int, input().split()))
 
@@ -368,6 +511,47 @@ int main() {
       }
     ],
     starterTemplates: {
+      python: `s = input().strip()
+# Write your solution below to print the length of the longest substring without repeating characters:
+
+`,
+      javascript: `function solve(input) {
+  const s = input.trim();
+  // Write your solution below to print the length of the longest substring without repeating characters:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <string>
+
+int main() {
+    std::string s;
+    if (std::cin >> s) {
+        // Write your solution below to print the length of the longest substring without repeating characters:
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char s[1024];
+    if (scanf("%s", s) == 1) {
+        // Write your solution below to print the length of the longest substring without repeating characters:
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Use a sliding window with two pointers (left and right) and a hash map tracking character positions.',
+      'When you see a repeated character, slide the left pointer past its previous occurrence.'
+    ],
+    solutions: {
       python: `s = input().strip()
 char_map = {}
 left = 0
@@ -498,6 +682,57 @@ Print the maximum amount of water a container can store.`,
       python: `n = int(input().strip())
 h = list(map(int, input().split()))
 
+# Write your solution below to print the maximum area:
+
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const n = parseInt(lines[0], 10);
+  const h = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below to print the maximum area:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+int main() {
+    int n;
+    if (std::cin >> n) {
+        std::vector<int> h(n);
+        for (int i = 0; i < n; ++i) std::cin >> h[i];
+
+        // Write your solution below to print the maximum area:
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n;
+    if (scanf("%d", &n) == 1) {
+        int h[1000];
+        for (int i = 0; i < n; ++i) scanf("%d", &h[i]);
+
+        // Write your solution below to print the maximum area:
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Use two pointers starting at both ends of the array.',
+      'The area is limited by the shorter line: min(h[left], h[right]) * (right - left). Move the shorter pointer inward.'
+    ],
+    solutions: {
+      python: `n = int(input().strip())
+h = list(map(int, input().split()))
+
 left, right = 0, n - 1
 max_area = 0
 
@@ -618,6 +853,45 @@ Each time you can either climb \`1\` or \`2\` steps. In how many distinct ways c
     ],
     starterTemplates: {
       python: `n = int(input().strip())
+# Write your solution below to print the number of distinct ways to climb to the top:
+
+`,
+      javascript: `function solve(input) {
+  const n = parseInt(input.trim(), 10);
+  // Write your solution below to print the number of distinct ways to climb to the top:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+
+int main() {
+    int n;
+    if (std::cin >> n) {
+        // Write your solution below to print the number of distinct ways to climb to the top:
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n;
+    if (scanf("%d", &n) == 1) {
+        // Write your solution below to print the number of distinct ways to climb to the top:
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'To reach step n, you can either step from n - 1 or jump from n - 2.',
+      'This yields the recurrence relation ways(n) = ways(n - 1) + ways(n - 2), which is equivalent to Fibonacci numbers.'
+    ],
+    solutions: {
+      python: `n = int(input().strip())
 if n <= 2:
     print(n)
 else:
@@ -729,6 +1003,57 @@ You must write an algorithm that runs in **O(n)** time and without using the div
       }
     ],
     starterTemplates: {
+      python: `n = int(input().strip())
+nums = list(map(int, input().split()))
+
+# Write your solution below to print the space-separated products:
+
+`,
+      javascript: `function solve(input) {
+  const lines = input.trim().split('\\n');
+  const n = parseInt(lines[0], 10);
+  const nums = lines[1].trim().split(/\\s+/).map(Number);
+
+  // Write your solution below to print the space-separated products:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+#include <vector>
+
+int main() {
+    int n;
+    if (std::cin >> n) {
+        std::vector<int> nums(n);
+        for (int i = 0; i < n; ++i) std::cin >> nums[i];
+
+        // Write your solution below to print the space-separated products:
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    int n;
+    if (scanf("%d", &n) == 1) {
+        int nums[1000];
+        for (int i = 0; i < n; ++i) scanf("%d", &nums[i]);
+
+        // Write your solution below to print the space-separated products:
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'Think about computing prefix products from left to right, and postfix products from right to left.',
+      'You can construct the result array in two passes without any division.'
+    ],
+    solutions: {
       python: `n = int(input().strip())
 nums = list(map(int, input().split()))
 
@@ -870,6 +1195,45 @@ int main() {
       }
     ],
     starterTemplates: {
+      python: `n = int(input().strip())
+# Write your solution below to print the number of 1 bits:
+
+`,
+      javascript: `function solve(input) {
+  let n = parseInt(input.trim(), 10);
+  // Write your solution below to print the number of 1 bits:
+
+}
+solve(stdin);
+`,
+      cpp: `#include <iostream>
+
+int main() {
+    unsigned int n;
+    if (std::cin >> n) {
+        // Write your solution below to print the number of 1 bits:
+
+    }
+    return 0;
+}
+`,
+      c: `#include <stdio.h>
+
+int main() {
+    unsigned int n;
+    if (scanf("%u", &n) == 1) {
+        // Write your solution below to print the number of 1 bits:
+
+    }
+    return 0;
+}
+`
+    },
+    hints: [
+      'You can inspect the lowest bit using n & 1, then shift right with n >>= 1.',
+      'Alternatively, Brian Kernighan\'s algorithm n = n & (n - 1) clears the lowest set bit in each step.'
+    ],
+    solutions: {
       python: `n = int(input().strip())
 count = 0
 while n > 0:
