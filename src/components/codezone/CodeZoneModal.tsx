@@ -26,11 +26,14 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
-  Code2
+  Code2,
+  Sparkles
 } from 'lucide-react';
 import { DsaProblemSpec } from '../../types/dsa';
 import { evaluateTestCases, EvaluationSummary } from '../../utils/codeRunner';
 import { useDsaProgress } from '../../context/DsaProgressContext';
+import { useGame } from '../../context/GameContext';
+import { AiTutorDrawer } from '../lesson/AiTutorDrawer';
 
 interface Props {
   initialCode?: string;
@@ -276,6 +279,37 @@ export const CodeZoneModal: React.FC<Props> = ({
   const [executionStats, setExecutionStats] = useState<{ timeMs: number; status: 'ok' | 'error' } | null>(null);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [mascotWisdom, setMascotWisdom] = useState<string | null>(null);
+  const [isAiDrawerOpen, setIsAiDrawerOpen] = useState<boolean>(false);
+
+  const { state: gameState } = useGame();
+
+  const hasConsoleError = useMemo(() => {
+    return (
+      executionStats?.status === 'error' ||
+      terminalOutput.some(
+        line =>
+          line.includes('Error]') ||
+          line.includes('[ERROR]') ||
+          line.startsWith('❌') ||
+          line.toLowerCase().includes('error:')
+      ) ||
+      (evaluationSummary !== null &&
+        !evaluationSummary.allPassed &&
+        Boolean(evaluationSummary.errorMessage))
+    );
+  }, [executionStats, terminalOutput, evaluationSummary]);
+
+  const lastErrorMessage = useMemo(() => {
+    if (evaluationSummary?.errorMessage) return evaluationSummary.errorMessage;
+    const errorLine = terminalOutput.find(
+      line =>
+        line.includes('Error]') ||
+        line.includes('[ERROR]') ||
+        line.startsWith('❌') ||
+        line.toLowerCase().includes('error:')
+    );
+    return errorLine || terminalOutput.join('\n') || 'Runtime/Compilation Error';
+  }, [evaluationSummary, terminalOutput]);
 
   // Attempt-first solution disclosure & hints state
   const [revealedHintsCount, setRevealedHintsCount] = useState<number>(0);
@@ -1717,6 +1751,17 @@ export const CodeZoneModal: React.FC<Props> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {hasConsoleError && (
+                    <button
+                      type="button"
+                      onClick={() => setIsAiDrawerOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-[11px] font-bold transition-all cursor-pointer shadow-xs"
+                      title="Ask ByteBot to diagnose this error"
+                    >
+                      <Sparkles className="w-3 h-3 text-rose-400" />
+                      <span>{gameState?.language === 'bn' ? 'এররটি বুঝিয়ে দাও' : 'Explain Error'}</span>
+                    </button>
+                  )}
                   {executionStats && (
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded ${
@@ -1885,6 +1930,25 @@ export const CodeZoneModal: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {/* Live Error Diagnosis AI Drawer */}
+      <AiTutorDrawer
+        isOpen={isAiDrawerOpen}
+        onClose={() => setIsAiDrawerOpen(false)}
+        tutorContext={{
+          mode: 'code_error',
+          contextId: `code-err-${problem?.id || 'scratchpad'}-${lastErrorMessage.slice(0, 30)}`,
+          courseId: language,
+          language: gameState?.language || 'en',
+          code,
+          stderr: lastErrorMessage,
+        }}
+        autoTriggerPrompt={
+          gameState?.language === 'bn'
+            ? 'আমার কোডের এই এররটি কেন হয়েছে এবং কীভাবে সমাধান করব বুঝিয়ে দাও।'
+            : 'Explain why this error occurred and guide me on how to fix it without giving the full code away.'
+        }
+      />
     </div>
   );
 };

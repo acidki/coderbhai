@@ -3,13 +3,14 @@ import { CatFace } from '../common/CatFace';
 import { TTSButton } from '../common/TTSButton';
 import { useGame } from '../../context/GameContext';
 import { useTranslation } from '../../data/translations';
-import { CheckCircle2, XCircle, Zap, HeartCrack } from 'lucide-react';
+import { Zap, HeartCrack, Sparkles } from 'lucide-react';
 
 interface Props {
   isCorrect: boolean;
   explanation: string;
   xpEarned: number;
   onContinue: () => void;
+  onExplainMistake?: () => void;
 }
 
 export const FeedbackBanner: React.FC<Props> = ({
@@ -17,6 +18,7 @@ export const FeedbackBanner: React.FC<Props> = ({
   explanation,
   xpEarned,
   onContinue,
+  onExplainMistake,
 }) => {
   const { state } = useGame();
   const t = useTranslation(state.language);
@@ -76,16 +78,30 @@ export const FeedbackBanner: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Chunky Continue Button */}
-        <button
-          type="button"
-          onClick={onContinue}
-          className={`btn-3d w-full sm:w-auto min-w-[150px] py-3.5 px-8 rounded-2xl text-base font-black uppercase tracking-wider cursor-pointer shadow-lg ${
-            isCorrect ? 'btn-3d-primary' : 'btn-3d-rose'
-          }`}
-        >
-          {t.continue}
-        </button>
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+          {!isCorrect && onExplainMistake && (
+            <button
+              type="button"
+              onClick={onExplainMistake}
+              className="btn-3d w-full sm:w-auto min-w-[150px] py-3.5 px-6 rounded-2xl text-base font-black uppercase tracking-wider cursor-pointer shadow-lg bg-amber-500 hover:bg-amber-400 text-slate-900 border-b-4 border-amber-600 active:translate-y-1 flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-4 h-4 fill-slate-900" />
+              <span>{state.language === 'bn' ? 'ভুলটি বুঝিয়ে দাও' : 'Explain Mistake'}</span>
+            </button>
+          )}
+
+          {/* Chunky Continue Button */}
+          <button
+            type="button"
+            onClick={onContinue}
+            className={`btn-3d w-full sm:w-auto min-w-[150px] py-3.5 px-8 rounded-2xl text-base font-black uppercase tracking-wider cursor-pointer shadow-lg ${
+              isCorrect ? 'btn-3d-primary' : 'btn-3d-rose'
+            }`}
+          >
+            {t.continue}
+          </button>
+        </div>
       </div>
     </div>
   );

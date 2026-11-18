@@ -8,7 +8,7 @@ import { sound } from '../../utils/audio';
 import { fireSmallBurst, stopConfetti } from '../../utils/confetti';
 import { CatFace, CatMood } from '../common/CatFace';
 import { TTSButton } from '../common/TTSButton';
-import { X, Heart, AlertTriangle, Lightbulb, Sparkles, BookOpen, Flame, Zap } from 'lucide-react';
+import { X, Heart, Lightbulb, Sparkles, BookOpen, Flame, Zap } from 'lucide-react';
 import { TapToFill } from './TapToFill';
 import { SpotTheBug } from './SpotTheBug';
 import { PredictOutput } from './PredictOutput';
@@ -18,6 +18,7 @@ import { LessonCompleteModal } from './LessonCompleteModal';
 import { OutOfHeartsModal } from './OutOfHeartsModal';
 import { CharacterIntroModal } from './CharacterIntroModal';
 import { ConceptGuideModal } from './ConceptGuideModal';
+import { AiTutorDrawer } from './AiTutorDrawer';
 
 interface Props {
   node: LessonNode;
@@ -109,6 +110,8 @@ export const LessonModal: React.FC<Props> = ({
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
   const [showOutOfHearts, setShowOutOfHearts] = useState<boolean>(false);
+  const [isAiDrawerOpen, setIsAiDrawerOpen] = useState<boolean>(false);
+  const [autoExplainMistake, setAutoExplainMistake] = useState<boolean>(false);
 
   const rawQuestion = questionQueue[currentQueueIndex];
   const currentQuestion = useMemo(() => {
@@ -353,6 +356,20 @@ export const LessonModal: React.FC<Props> = ({
                 <span>{t.conceptGuide}</span>
               </button>
 
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setAutoExplainMistake(false);
+                  setIsAiDrawerOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-black uppercase tracking-wider transition-all cursor-pointer border border-purple-500/20"
+                title="Ask ByteBot for guidance"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{state.language === 'bn' ? 'বাইটবটকে জিজ্ঞাসা করুন' : 'Ask ByteBot 🤖'}</span>
+              </button>
+
               {/* TTS Listen Button for Current Question */}
               <TTSButton
                 text={`${currentQuestion.prompt}. ${currentQuestion.explanation}`}
@@ -486,6 +503,10 @@ export const LessonModal: React.FC<Props> = ({
           explanation={currentExplanation}
           xpEarned={currentQuestion.xpReward}
           onContinue={handleContinueAfterFeedback}
+          onExplainMistake={() => {
+            setAutoExplainMistake(true);
+            setIsAiDrawerOpen(true);
+          }}
         />
       )}
 
@@ -568,6 +589,22 @@ export const LessonModal: React.FC<Props> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Socratic AI Tutor Drawer */}
+      {currentQuestion && (
+        <AiTutorDrawer
+          isOpen={isAiDrawerOpen}
+          onClose={() => setIsAiDrawerOpen(false)}
+          courseId={currentCourse.id}
+          language={state.language}
+          question={currentQuestion}
+          tapAnswers={tapAnswers}
+          selectedBugLine={selectedBugLine}
+          selectedOutputOption={selectedOutputOption}
+          isConceptAllMatched={isConceptAllMatched}
+          autoTriggerExplain={autoExplainMistake}
+        />
       )}
     </div>
   );

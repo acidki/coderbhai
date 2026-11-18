@@ -7,6 +7,7 @@ import { useGame } from '../../context/GameContext';
 import { useTranslation } from '../../data/translations';
 import { sound } from '../../utils/audio';
 import { Sparkles, ArrowRight, CheckCircle2, Terminal } from 'lucide-react';
+import { AiTutorDrawer } from './AiTutorDrawer';
 
 interface Props {
   intro: TeachingIntro;
@@ -25,6 +26,7 @@ export const CharacterIntroModal: React.FC<Props> = ({
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [interactiveTokens, setInteractiveTokens] = useState<string[]>([]);
+  const [isWhyDrawerOpen, setIsWhyDrawerOpen] = useState(false);
 
   const step = intro.steps[currentStepIndex];
   const character = CHARACTERS[step.characterId] || CHARACTERS.byte;
@@ -111,11 +113,22 @@ export const CharacterIntroModal: React.FC<Props> = ({
             {/* Arrow pointing to character on desktop */}
             <div className="hidden sm:block absolute -left-2.5 top-6 w-5 h-5 bg-slate-100 dark:bg-[#202F36] border-l-2 border-b-2 border-slate-200 dark:border-slate-700/80 rotate-45" />
 
-            <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
               <h3 className="text-lg md:text-xl font-black text-slate-800 dark:text-slate-100">
                 {intro.title}
               </h3>
-              <TTSButton text={step.speech} size="sm" />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsWhyDrawerOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/15 hover:bg-purple-500/25 text-purple-600 dark:text-purple-400 text-xs font-black transition-all border border-purple-500/30 cursor-pointer shadow-xs"
+                  title="Ask ByteBot why this works"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{isBn ? 'কেন এটা কাজ করে?' : 'Why does this work?'}</span>
+                </button>
+                <TTSButton text={step.speech} size="sm" />
+              </div>
             </div>
 
             <p className="text-sm md:text-base font-semibold text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line">
@@ -268,6 +281,27 @@ export const CharacterIntroModal: React.FC<Props> = ({
           </button>
         </div>
       </div>
+
+      {/* Slide Why AI Mentor Drawer */}
+      <AiTutorDrawer
+        isOpen={isWhyDrawerOpen}
+        onClose={() => setIsWhyDrawerOpen(false)}
+        tutorContext={{
+          mode: 'slide_why',
+          contextId: `slide-${currentStepIndex}-${intro.title}`,
+          courseId: state.activeCourseId,
+          language: state.language,
+          slideTitle: `${intro.title} (Step ${currentStepIndex + 1})`,
+          speech: step.speech,
+          codeSnippet: step.codeSnippet,
+          anatomy: step.anatomy,
+        }}
+        autoTriggerPrompt={
+          isBn
+            ? 'এই ধারণাটি কীভাবে কাজ করে এবং কেন এভাবে ডিজাইন করা হয়েছে বুঝিয়ে দাও।'
+            : 'Why does this concept work this way? Explain the intuition from first principles.'
+        }
+      />
     </div>
   );
 };
